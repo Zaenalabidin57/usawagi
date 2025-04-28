@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Short Link - Cute Blog{% endblock %}
+
+{% block content %}
+<div class="card bg-neutral shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <h2 class="card-title text-2xl text-primary mb-6">Create New Short Link</h2>
+        
+        <form method="post" action="{% url 'create_shortlink' %}">
+            {% csrf_token %}
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.original_url.label }}</span>
+                </label>
+                {{ form.original_url }}
+                {% if form.original_url.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.original_url.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.title.label }}</span>
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.description.label }}</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-6">
+                <label class="label">
+                    <span class="label-text">{{ form.short_code.label }}</span>
+                </label>
+                {{ form.short_code }}
+                {% if form.short_code.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.short_code.errors.0 }}</span>
+                </label>
+                {% else %}
+                <label class="label">
+                    <span class="label-text-alt">{{ form.short_code.help_text }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control flex-row justify-end gap-2">
+                <a href="{% url 'shortlink_dashboard' %}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Short Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="card bg-neutral shadow-xl max-w-3xl mx-auto mt-8">
+    <div class="card-body">
+        <h2 class="card-title text-xl text-primary mb-4">How It Works</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="flex flex-col items-center p-4 bg-base-100 rounded-box">
+                <div class="bg-primary text-neutral-content rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                    <span class="text-xl font-bold">1</span>
+                </div>
+                <h3 class="font-semibold text-center">Create a Short Link</h3>
+                <p class="text-center text-sm mt-2">Enter the URL you want to shorten and optional details</p>
+            </div>
+            
+            <div class="flex flex-col items-center p-4 bg-base-100 rounded-box">
+                <div class="bg-primary text-neutral-content rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                    <span class="text-xl font-bold">2</span>
+                </div>
+                <h3 class="font-semibold text-center">Share Your Link</h3>
+                <p class="text-center text-sm mt-2">Copy and share your shortened link with others</p>
+            </div>
+            
+            <div class="flex flex-col items-center p-4 bg-base-100 rounded-box">
+                <div class="bg-primary text-neutral-content rounded-full w-12 h-12 flex items-center justify-center mb-3">
+                    <span class="text-xl font-bold">3</span>
+                </div>
+                <h3 class="font-semibold text-center">Track Performance</h3>
+                <p class="text-center text-sm mt-2">Monitor clicks and engagement with your links</p>
+            </div>
+        </div>
+        
+        <div class="alert bg-base-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+                <h3 class="font-bold">Note</h3>
+                <div class="text-sm">When users click your short link, they'll see a 5-second waiting page with ad space before being redirected to the destination.</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

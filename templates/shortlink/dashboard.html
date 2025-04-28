@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Shortlink Dashboard - Cute Blog{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-primary">Your Short Links</h1>
+        <a href="{% url 'create_shortlink' %}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create New Link
+        </a>
+    </div>
+    
+    {% if shortlinks %}
+    <div class="overflow-x-auto">
+        <table class="table w-full">
+            <thead>
+                <tr>
+                    <th class="bg-neutral">Short Link</th>
+                    <th class="bg-neutral">Original URL</th>
+                    <th class="bg-neutral">Title</th>
+                    <th class="bg-neutral">Clicks</th>
+                    <th class="bg-neutral">Created</th>
+                    <th class="bg-neutral">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in shortlinks %}
+                <tr class="hover">
+                    <td>
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'redirect_to_original' short_code=link.short_code %}" class="font-mono text-primary hover:underline" target="_blank">
+                                {{ request.get_host }}/s/{{ link.short_code }}
+                            </a>
+                            <button class="btn btn-xs btn-ghost" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/s/{{ link.short_code }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="max-w-xs truncate">
+                            <a href="{{ link.original_url }}" class="hover:underline" target="_blank" title="{{ link.original_url }}">
+                                {{ link.original_url|truncatechars:40 }}
+                            </a>
+                        </div>
+                    </td>
+                    <td>{{ link.title|default:"-" }}</td>
+                    <td>{{ link.clicks }}</td>
+                    <td>{{ link.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="flex space-x-2">
+                            <a href="{% url 'edit_shortlink' short_code=link.short_code %}" class="btn btn-xs btn-outline btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                            <a href="{% url 'delete_shortlink' short_code=link.short_code %}" class="btn btn-xs btn-outline btn-error">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card bg-neutral shadow-xl">
+        <div class="card-body items-center text-center">
+            <h2 class="card-title text-primary">No Short Links Yet</h2>
+            <p class="mb-4">You haven't created any short links yet. Create your first one now!</p>
+            <div class="card-actions">
+                <a href="{% url 'create_shortlink' %}" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create New Link
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Show a toast or alert that the link was copied
+            alert('Link copied to clipboard!');
+        }, function() {
+            // Fallback for browsers that don't support clipboard API
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('Link copied to clipboard!');
+        });
+    }
+</script>
+{% endblock %}

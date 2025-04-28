@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Short Link - Cute Blog{% endblock %}
+
+{% block content %}
+<div class="card bg-neutral shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <h2 class="card-title text-2xl text-primary mb-6">Edit Short Link</h2>
+        
+        <form method="post" action="{% url 'edit_shortlink' short_code=shortlink.short_code %}">
+            {% csrf_token %}
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.original_url.label }}</span>
+                </label>
+                {{ form.original_url }}
+                {% if form.original_url.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.original_url.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.title.label }}</span>
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">{{ form.description.label }}</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="form-control mb-6">
+                <label class="label">
+                    <span class="label-text">{{ form.short_code.label }}</span>
+                </label>
+                {{ form.short_code }}
+                {% if form.short_code.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.short_code.errors.0 }}</span>
+                </label>
+                {% else %}
+                <label class="label">
+                    <span class="label-text-alt">{{ form.short_code.help_text }}</span>
+                </label>
+                {% endif %}
+            </div>
+            
+            <div class="stats shadow mb-6 w-full">
+                <div class="stat">
+                    <div class="stat-figure text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </div>
+                    <div class="stat-title">Total Clicks</div>
+                    <div class="stat-value text-primary">{{ shortlink.clicks }}</div>
+                    <div class="stat-desc">Since {{ shortlink.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            
+            <div class="form-control flex-row justify-end gap-2">
+                <a href="{% url 'shortlink_dashboard' %}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update Short Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

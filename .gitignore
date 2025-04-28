@@ -1,0 +1,9 @@
+.vscode
+blog/__pycache__
+blog/migrations/__pycache__
+cuteblog/__pycache__
+media/images/posts
+media
+shortlink/__pycache__
+shortlink/migrations/__pycache__
+db.sqlite3

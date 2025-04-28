@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - Cute Blog{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="md:col-span-2">
+        <!-- Post Content -->
+        <div class="card bg-neutral shadow-xl mb-8">
+            <div class="card-body">
+                <h1 class="text-3xl font-bold text-primary mb-2">{{ post.title }}</h1>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% for category in post.categories.all %}
+                    <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-primary hover:badge-accent transition-all duration-200">{{ category.name }}</a>
+                    {% endfor %}
+                </div>
+                
+                {% if post.actresses.exists %}
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <span class="text-sm opacity-70">Aktris:</span>
+                    {% for actress in post.actresses.all %}
+                    <a href="{% url 'blog' %}?actress={{ actress.name }}" class="badge badge-secondary hover:badge-accent transition-all duration-200">{{ actress.name }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="flex items-center gap-4 mb-6 text-sm opacity-70">
+                    <div class="badge badge-outline">{{ post.created_at|date:"F d, Y" }}</div>
+                    <div class="badge badge-outline">By {{ post.author.username }}</div>
+                </div>
+                
+                {% if post.images.exists %}
+                <div class="mb-6">
+                    <div class="carousel w-full rounded-lg overflow-hidden h-[500px] bg-base-300" id="image-carousel">
+                        {% for image in post.images.all %}
+                        <div id="slide{{ forloop.counter }}" class="carousel-item relative w-full h-full">
+                            <img src="{% if image.thumbnail %}{{ image.thumbnail.url }}{% else %}{{ image.image.url }}{% endif %}" class="w-full h-full object-contain cursor-pointer" alt="{{ post.title }} - Image {{ forloop.counter }}" onclick="openFullscreen(this)" data-full-image="{{ image.image.url }}" />
+                            <div class="absolute flex justify-between transform -translate-y-1/2 left-5 right-5 top-1/2">
+                                <a href="#slide{% if forloop.first %}{{ post.images.count }}{% else %}{{ forloop.counter|add:"-1" }}{% endif %}" class="btn btn-circle btn-sm bg-base-300 bg-opacity-50 carousel-prev">❮</a>
+                                <a href="#slide{% if forloop.last %}1{% else %}{{ forloop.counter|add:"1" }}{% endif %}" class="btn btn-circle btn-sm bg-base-300 bg-opacity-50 carousel-next">❯</a>
+                            </div>
+                            <div class="absolute bottom-2 right-2">
+                                <a href="{{ image.image.url }}" download class="btn btn-circle btn-sm bg-primary text-white" title="Download image">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="flex justify-center w-full py-2 gap-2" id="carousel-indicators">
+                        {% for image in post.images.all %}
+                        <a href="#slide{{ forloop.counter }}" class="btn btn-xs carousel-indicator" data-slide="{{ forloop.counter }}"{% if forloop.first %} data-active="true"{% endif %}>{{ forloop.counter }}</a>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Fullscreen Preview Modal -->
+                    <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center hidden" onclick="closeFullscreen()">
+                        <div class="relative w-full h-full flex items-center justify-center">
+                            <img id="fullscreen-image" class="max-w-full max-h-full object-contain" src="" alt="Fullscreen preview" />
+                            <div class="absolute top-4 right-4 flex gap-2">
+                                <a id="fullscreen-download" href="" download class="btn btn-circle btn-sm btn-primary" title="Download image" onclick="event.stopPropagation()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                </a>
+                                <button class="btn btn-circle btn-sm btn-ghost text-white" onclick="closeFullscreen()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const carousel = document.getElementById('image-carousel');
+                        const indicators = document.querySelectorAll('.carousel-indicator');
+                        let touchStartX = 0;
+                        let touchEndX = 0;
+                        let currentSlide = 1;
+                        const totalSlides = {{ post.images.count }};
+                        
+                        // Update active indicator
+                        function updateActiveIndicator(slideNumber) {
+                            indicators.forEach(indicator => {
+                                if (parseInt(indicator.dataset.slide) === slideNumber) {
+                                    indicator.classList.add('btn-primary');
+                                    indicator.classList.remove('btn-ghost');
+                                    indicator.dataset.active = 'true';
+                                } else {
+                                    indicator.classList.remove('btn-primary');
+                                    indicator.classList.add('btn-ghost');
+                                    indicator.dataset.active = 'false';
+                                }
+                            });
+                        }
+                        
+                        // Initialize indicators
+                        updateActiveIndicator(1);
+                        
+                        // Handle hash change for indicators
+                        function handleHashChange() {
+                            const hash = window.location.hash;
+                            if (hash.startsWith('#slide')) {
+                                currentSlide = parseInt(hash.replace('#slide', ''));
+                                updateActiveIndicator(currentSlide);
+                            }
+                        }
+                        
+                        // Listen for hash changes
+                        window.addEventListener('hashchange', handleHashChange);
+                        
+                        // Handle prev/next button clicks
+                        document.querySelectorAll('.carousel-prev, .carousel-next').forEach(button => {
+                            button.addEventListener('click', function() {
+                                // Use setTimeout to allow the hash to change first
+                                setTimeout(handleHashChange, 10);
+                            });
+                        });
+                        
+                        // Handle indicator clicks
+                        indicators.forEach(indicator => {
+                            indicator.addEventListener('click', function() {
+                                currentSlide = parseInt(this.dataset.slide);
+                                updateActiveIndicator(currentSlide);
+                            });
+                        });
+                        
+                        // Touch events for swipe
+                        carousel.addEventListener('touchstart', function(e) {
+                            touchStartX = e.changedTouches[0].screenX;
+                        }, false);
+                        
+                        carousel.addEventListener('touchend', function(e) {
+                            touchEndX = e.changedTouches[0].screenX;
+                            handleSwipe();
+                        }, false);
+                        
+                        function handleSwipe() {
+                            if (touchEndX < touchStartX) {
+                                // Swipe left - go to next slide
+                                let nextSlide = currentSlide + 1;
+                                if (nextSlide > totalSlides) nextSlide = 1;
+                                window.location.hash = `#slide${nextSlide}`;
+                                currentSlide = nextSlide;
+                                updateActiveIndicator(currentSlide);
+                            }
+                            if (touchEndX > touchStartX) {
+                                // Swipe right - go to previous slide
+                                let prevSlide = currentSlide - 1;
+                                if (prevSlide < 1) prevSlide = totalSlides;
+                                window.location.hash = `#slide${prevSlide}`;
+                                currentSlide = prevSlide;
+                                updateActiveIndicator(currentSlide);
+                            }
+                        }
+                    });
+                    
+                    // Fullscreen image preview functions
+                    function openFullscreen(img) {
+                        const modal = document.getElementById('image-modal');
+                        const fullscreenImg = document.getElementById('fullscreen-image');
+                        const downloadLink = document.getElementById('fullscreen-download');
+                        fullscreenImg.src = img.dataset.fullImage;
+                        fullscreenImg.alt = img.alt;
+                        downloadLink.href = img.dataset.fullImage;
+                        modal.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden'; // Prevent scrolling
+                    }
+                    
+                    function closeFullscreen() {
+                        const modal = document.getElementById('image-modal');
+                        modal.classList.add('hidden');
+                        document.body.style.overflow = ''; // Restore scrolling
+                    }
+                    
+                    // Make these functions globally available
+                    window.openFullscreen = openFullscreen;
+                    window.closeFullscreen = closeFullscreen;
+                    
+                    // Close on escape key
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape') {
+                            closeFullscreen();
+                        }
+                    });
+                </script>
+                {% endif %}
+                
+                {% if post.download_links.exists %}
+                <div class="card bg-base-200 my-6">
+                    <div class="card-body">
+                        <h2 class="card-title text-primary">Download Links</h2>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            {% for link in post.download_links.all %}
+                            <a href="{{ link.get_absolute_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-{{ link.host_type.color }} gap-2">
+                                {% if link.host_type.icon %}
+                                <i class="{{ link.host_type.icon }}"></i>
+                                {% endif %}
+                                {{ link.host_type.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="flex flex-col space-y-4 mt-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <form method="post" action="{% url 'like_post' slug=post.slug %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline btn-primary gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                {{ post.likes }} Likes
+                            </button>
+                        </form>
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            {{ total_comments }} Comments
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            {{ post.views }} Views
+                        </span>
+                    </div>
+                    
+                    {% if user == post.author %}
+                    <div class="flex gap-2">
+                        <a href="{% url 'edit_post' slug=post.slug %}" class="btn btn-sm btn-outline btn-primary">Edit</a>
+                        <a href="{% url 'delete_post' slug=post.slug %}" class="btn btn-sm btn-outline btn-error" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="card bg-neutral shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="text-xl font-bold text-primary mb-4">Comments ({{ total_comments }})</h2>
+                
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_comment' slug=post.slug %}" class="mb-6">
+                    {% csrf_token %}
+                    <div class="form-control">
+                        <textarea name="content" class="textarea textarea-bordered h-24" placeholder="Write your comment here..." required></textarea>
+                    </div>
+                    <div class="form-control mt-4">
+                        <button type="submit" class="btn btn-primary">Post Comment</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert mb-6">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <h3 class="font-bold">Please sign in to comment</h3>
+                            <div class="text-xs">Join the conversation by signing in or creating an account</div>
+                        </div>
+                    </div>
+                    <div class="flex-none">
+                        <a href="{% url 'signin' %}" class="btn btn-primary btn-sm">Sign In</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="divider"></div>
+                
+                {% for comment in comments %}
+                <div class="bg-base-100 p-4 rounded-lg mb-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="avatar placeholder">
+                                <div class="bg-primary text-neutral-content rounded-full w-8">
+                                    <span>{{ comment.author.username.0|upper }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold">{{ comment.author.username }}</h3>
+                                <p class="text-xs opacity-70">{{ comment.created_at|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                        {% if user == comment.author %}
+                        <a href="{% url 'delete_comment' comment_id=comment.id %}" class="btn btn-xs btn-ghost text-error" onclick="return confirm('Are you sure you want to delete this comment?')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                    <p>{{ comment.content }}</p>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <p class="text-lg opacity-70">No comments yet. Be the first to comment!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="md:col-span-1">
+        <!-- Recent Posts Sidebar -->
+        <div class="card bg-neutral shadow-xl sticky top-4">
+            <div class="card-body">
+                <h2 class="card-title text-primary">Popular Posts</h2>
+                <div class="space-y-4 mt-2">
+                    {% for recent_post in recent_posts %}
+                    <a href="{% url 'post_detail' slug=recent_post.slug %}" class="flex items-center gap-3 hover:bg-base-100 p-2 rounded-lg transition-all">
+                        {% if recent_post.images.exists %}
+                        {% with thumbnail=recent_post.get_thumbnail %}
+                        <img src="{% if thumbnail.thumbnail %}{{ thumbnail.thumbnail.url }}{% else %}{{ thumbnail.image.url }}{% endif %}" alt="{{ recent_post.title }}" class="w-24 h-24 object-cover rounded-lg flex-shrink-0" />
+                        {% endwith %}
+                        {% else %}
+                        <div class="w-24 h-24 bg-primary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span class="text-primary text-xs">No Image</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex-grow min-w-0">
+                            <h3 class="font-semibold text-primary text-sm line-clamp-2">{{ recent_post.title }}</h3>
+                            <div class="flex items-center gap-2 mt-2 text-xs opacity-70">
+                                <span class="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                    {{ recent_post.likes }}
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    {{ recent_post.views }}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-sm opacity-70">No other posts available.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

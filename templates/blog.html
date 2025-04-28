@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Cute Blog - All Posts{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Search Results Banner -->
+    {% if search or category or actress %}
+    <div class="alert bg-neutral shadow-lg mb-6">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-primary flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <div>
+                {% if search %}
+                <span>Search results for: <span class="font-bold">{{ search }}</span></span>
+                {% elif category %}
+                <span>Posts in category: <span class="font-bold">{{ category }}</span></span>
+                {% elif actress %}
+                <span>Posts featuring: <span class="font-bold">{{ actress }}</span></span>
+                {% endif %}
+                <div class="text-xs">({{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }})</div>
+            </div>
+        </div>
+        <div class="flex-none">
+            <a href="{% url 'blog' %}" class="btn btn-sm btn-ghost">Clear</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Main Content -->
+        <div class="lg:w-3/4">
+            <h1 class="text-3xl font-bold text-primary mb-8">Koleksi Kami</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for post in page_obj %}
+                <div class="card bg-neutral shadow-xl h-full overflow-hidden">
+                    {% if post.images.exists %}
+                    {% with thumbnail=post.get_thumbnail %}
+                    <a href="{% url 'post_detail' slug=post.slug %}" class="relative block">
+                        <img src="{% if thumbnail.thumbnail %}{{ thumbnail.thumbnail.url }}{% else %}{{ thumbnail.image.url }}{% endif %}" alt="{{ post.title }}" class="h-64 w-full object-cover hover:scale-105 transition-transform duration-300" />
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+                            <h2 class="card-title text-white mb-0">{{ post.title }}</h2>
+                        </div>
+                    </a>
+                    {% endwith %}
+                    {% endif %}
+                    <div class="card-body p-4">
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            {% for category in post.categories.all %}
+                            <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-primary badge-sm hover:badge-accent transition-all duration-200">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                        {% if post.actresses.exists %}
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            {% for actress in post.actresses.all %}
+                            <a href="{% url 'blog' %}?actress={{ actress.name }}" class="badge badge-secondary badge-sm hover:badge-accent transition-all duration-200">{{ actress.name }}</a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="flex items-center gap-4 mt-auto text-sm">
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                {{ post.likes }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                </svg>
+                                {{ post.comments.count }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                {{ post.views }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-2">
+                    <div class="alert alert-info shadow-lg">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div>
+                                <h3 class="font-bold">No posts yet!</h3>
+                                <div class="text-xs">Be the first to create a post.</div>
+                            </div>
+                        </div>
+                        {% if user.is_authenticated %}
+                        <div class="flex-none">
+                            <a href="{% url 'create_post' %}" class="btn btn-primary btn-sm">Create Post</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:w-1/4">
+            <div class="card bg-neutral shadow-xl sticky top-4">
+                <div class="card-body">
+                    <h2 class="card-title text-primary">Kategori</h2>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {% for category in categories %}
+                        <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-primary hover:badge-accent transition-all duration-200">{{ category.name }} ({{ category.post_count }})</a>
+                        {% empty %}
+                        <span class="text-sm opacity-70">No categories available</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <h2 class="card-title text-primary">Aktris</h2>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        {% for actress in actresses %}
+                        <a href="{% url 'blog' %}?actress={{ actress.name }}" class="badge badge-secondary hover:badge-accent transition-all duration-200">{{ actress.name }} ({{ actress.post_count }})</a>
+                        {% empty %}
+                        <span class="text-sm opacity-70">No actresses available</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <h2 class="card-title text-primary">Post Populer</h2>
+                    <ul class="mt-2 space-y-3">
+                        {% for post in top_posts %}
+                        <li>
+                            <a href="{% url 'post_detail' slug=post.slug %}" class="flex items-start gap-2 hover:opacity-80 transition-all duration-300">
+                                {% if post.images.exists %}
+                                {% with thumbnail=post.get_thumbnail %}
+                                <img src="{% if thumbnail.thumbnail %}{{ thumbnail.thumbnail.url }}{% else %}{{ thumbnail.image.url }}{% endif %}" alt="{{ post.title }}" class="w-16 h-16 object-cover rounded-lg" />
+                                {% endwith %}
+                                {% endif %}
+                                <div>
+                                    <h3 class="font-medium text-primary">{{ post.title }}</h3>
+                                    <div class="flex items-center gap-2 text-xs opacity-70">
+                                        <span>{{ post.likes }} likes</span>
+                                        <span>{{ post.views }} views</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% empty %}
+                        <li class="text-sm opacity-70">No posts yet</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="mt-6">
+                        {% if user.is_staff or user.is_superuser or user.permission.can_create_posts %}
+                        <a href="{% url 'create_post' %}" class="btn btn-primary btn-block">Buat Postingan Baru</a>
+                        {% else %}
+                        <div class="alert alert-info shadow-lg">
+                            <div>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Only approved users can create posts</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
