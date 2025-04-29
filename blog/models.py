@@ -3,13 +3,50 @@ from django.contrib.auth.models import User
 from datetime import datetime
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from PIL import Image
 import os
+from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 from shortlink.models import ShortLink
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 # Create your models here.
+
+# Point system constants
+POINT_FOR_POST = 10
+POINT_FOR_LIKE = 1
+POINT_FOR_COMMENT = 2
+POINT_FOR_BOOKMARK = 5
+
+# Helper functions for point system
+def add_points_for_post(user):
+    """Add points to user for creating a post"""
+    if user and hasattr(user, 'profile'):
+        user.profile.points += POINT_FOR_POST
+        user.profile.save()
+
+def add_points_for_like(post):
+    """Add points to post author when post is liked"""
+    if post and post.author and hasattr(post.author, 'profile'):
+        post.author.profile.points += POINT_FOR_LIKE
+        post.author.profile.save()
+
+def add_points_for_comment(post):
+    """Add points to post author when post receives a comment"""
+    if post and post.author and hasattr(post.author, 'profile'):
+        post.author.profile.points += POINT_FOR_COMMENT
+        post.author.profile.save()
+
+def add_points_for_bookmark(content_object):
+    """Add points to content author when content is bookmarked"""
+    # Check if it's a Post or Manga
+    if hasattr(content_object, 'author') and hasattr(content_object.author, 'profile'):
+        content_object.author.profile.points += POINT_FOR_BOOKMARK
+        content_object.author.profile.save()
+    elif hasattr(content_object, 'user') and hasattr(content_object.user, 'profile'):
+        content_object.user.profile.points += POINT_FOR_BOOKMARK
+        content_object.user.profile.save()
 
 class Category(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -29,6 +66,33 @@ class Actress(models.Model):
     class Meta:
         verbose_name_plural = 'Actresses'
 
+class MangaCategory(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name_plural = 'Manga Categories'
+
+class MangaTag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name_plural = 'Manga Tags'
+
+class MangaAuthor(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        verbose_name_plural = 'Manga Authors'
+
 class HostType(models.Model):
     name = models.CharField(max_length=50, unique=True)
     icon = models.CharField(max_length=50, help_text="Font Awesome icon class", blank=True)
@@ -36,6 +100,57 @@ class HostType(models.Model):
     
     def __str__(self):
         return self.name
+
+class Manga(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True)
+    manga_categories = models.ManyToManyField(MangaCategory, related_name='mangas')
+    manga_tags = models.ManyToManyField(MangaTag, related_name='mangas')
+    manga_authors = models.ManyToManyField(MangaAuthor, related_name='mangas')
+    description = models.TextField(blank=True)
+    pdf_file = models.FileField(upload_to='manga/pdfs/')
+    thumbnail = models.ImageField(upload_to='manga/thumbnails/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    likes = models.IntegerField(default=0)
+    views = models.PositiveIntegerField(default=0)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mangas', null=True, default=None)
+    download_shortlink = models.OneToOneField(ShortLink, on_delete=models.SET_NULL, null=True, blank=True, related_name='manga_download')
+    
+    def __str__(self):
+        return self.title
+    
+    def save(self, *args, **kwargs):
+        # Create a new manga
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        # Generate shortlink for PDF download if it doesn't exist
+        if is_new or not self.download_shortlink:
+            from shortlink.models import ShortLink
+            shortlink = ShortLink.objects.create(
+                original_url=f"/manga/download/{self.slug}/",
+                title=f"Download {self.title}"
+            )
+            self.download_shortlink = shortlink
+            super().save(update_fields=['download_shortlink'])
+    
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('manga_detail', kwargs={'slug': self.slug})
+    
+    def get_download_url(self):
+        from django.urls import reverse
+        if self.download_shortlink:
+            return reverse('redirect_to_original', kwargs={'short_code': self.download_shortlink.short_code})
+        return reverse('manga_download', kwargs={'slug': self.slug})
+    
+    def get_view_url(self):
+        from django.urls import reverse
+        return reverse('manga_view', kwargs={'slug': self.slug})
+    
+    class Meta:
+        ordering = ['-created_at']
 
 class Post(models.Model):
     title = models.CharField(max_length=200)
@@ -48,6 +163,7 @@ class Post(models.Model):
     likes = models.IntegerField(default=0)
     views = models.PositiveIntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    is_member_post = models.BooleanField(default=False, help_text="Check if this is a member-created post rather than an official post")
     
     def __str__(self):
         return self.title
@@ -157,6 +273,15 @@ class UserPermission(models.Model):
     def __str__(self):
         return f"{self.user.username}'s permissions"
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    bio = models.TextField(blank=True)
+    points = models.PositiveIntegerField(default=0, help_text="Points earned from user interactions with posts")
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
 class Contact(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -167,11 +292,32 @@ class Contact(models.Model):
     def __str__(self):
         return self.subject
 
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookmarks')
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'content_type', 'object_id')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} bookmarked {self.content_object}"
+
 # Signal to create user permission when a new user is created
 @receiver(post_save, sender=User)
 def create_user_permission(sender, instance, created, **kwargs):
     if created:
-        UserPermission.objects.create(user=instance, can_create_posts=False)
+        UserPermission.objects.create(user=instance)
 
-# Connect the signal
+# Signal to create user profile when a new user is created
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+# Connect the signals
 post_save.connect(create_user_permission, sender=User)
+post_save.connect(create_user_profile, sender=User)

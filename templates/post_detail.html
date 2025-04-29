@@ -9,9 +9,12 @@
         <div class="card bg-neutral shadow-xl mb-8">
             <div class="card-body">
                 <h1 class="text-3xl font-bold text-primary mb-2">{{ post.title }}</h1>
+                {% if post.is_member_post %}
+                <div class="badge badge-accent mb-4">Member Post</div>
+                {% endif %}
                 <div class="flex flex-wrap gap-2 mb-4">
                     {% for category in post.categories.all %}
-                    <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-primary hover:badge-accent transition-all duration-200">{{ category.name }}</a>
+                    <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-outline badge-primary hover:badge-outline hover:badge-accent transition-all duration-200">{{ category.name }}</a>
                     {% endfor %}
                 </div>
                 
@@ -19,14 +22,30 @@
                 <div class="flex flex-wrap gap-2 mb-4">
                     <span class="text-sm opacity-70">Aktris:</span>
                     {% for actress in post.actresses.all %}
-                    <a href="{% url 'blog' %}?actress={{ actress.name }}" class="badge badge-secondary hover:badge-accent transition-all duration-200">{{ actress.name }}</a>
+                    <a href="{% url 'blog' %}?actress={{ actress.name }}" class="badge badge-outline badge-secondary hover:badge-outline hover:badge-accent transition-all duration-200">{{ actress.name }}</a>
                     {% endfor %}
                 </div>
                 {% endif %}
                 
-                <div class="flex items-center gap-4 mb-6 text-sm opacity-70">
-                    <div class="badge badge-outline">{{ post.created_at|date:"F d, Y" }}</div>
-                    <div class="badge badge-outline">By {{ post.author.username }}</div>
+                <div class="flex items-center justify-between gap-4 mb-6">
+                    <div class="flex items-center gap-4 text-sm opacity-70">
+                        <div class="badge badge-outline">{{ post.created_at|date:"F d, Y" }}</div>
+                        <div class="badge badge-outline">By {{ post.author.username }}</div>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'bookmark_item' %}" method="post" class="flex">
+                        {% csrf_token %}
+                        <input type="hidden" name="content_type_id" value="{{ post_content_type_id }}">
+                        <input type="hidden" name="object_id" value="{{ post.id }}">
+                        <button type="submit" class="btn btn-sm btn-outline btn-primary flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="{% if is_bookmarked %}currentColor{% else %}none{% endif %}" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                            </svg>
+                            {% if is_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
                 
                 {% if post.images.exists %}

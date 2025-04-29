@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reading {{ manga.title }} - Usawagi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="mb-4">
+        <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Kembali
+        </a>
+    </div>
+    
+    <div class="card bg-neutral shadow-xl">
+        <div class="card-body">
+            <h1 class="text-2xl font-bold text-primary mb-4">{{ manga.title }}</h1>
+            
+            <!-- PDF Viewer -->
+            <div class="w-full h-[80vh]">
+                <embed src="{{ manga.pdf_file.url }}" type="application/pdf" width="100%" height="100%">
+            </div>
+            
+            <!-- Download Links -->
+            <div class="mt-4">
+                <div class="flex flex-wrap gap-2">
+                    {% for link in manga.download_links.all %}
+                    <a href="{{ link.get_absolute_url }}" class="btn btn-outline btn-primary" target="_blank">
+                        Download from {{ link.host_type.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-4">
+        <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Kembali
+        </a>
+    </div>
+</div>
+{% endblock %} 

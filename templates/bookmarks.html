@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ profile_user.username }}'s Bookmarks - Cute Blog{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Profile Info Sidebar -->
+        <div class="md:col-span-1">
+            <div class="card bg-neutral shadow-xl sticky top-4">
+                <div class="card-body items-center text-center">
+                    <div class="avatar mb-4">
+                        <div class="w-24 h-24 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+                            {% if profile_user.profile.profile_picture %}
+                            <img src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }}" class="w-full h-full object-cover" />
+                            {% else %}
+                            <span class="text-3xl font-bold text-black">{{ profile_user.username.0|upper }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h2 class="card-title text-primary text-2xl">{{ profile_user.username }}</h2>
+                    {% if profile_user.first_name or profile_user.last_name %}
+                    <p>{{ profile_user.first_name }} {{ profile_user.last_name }}</p>
+                    {% endif %}
+                    
+                    {% if profile_user.profile.bio %}
+                    <div class="divider"></div>
+                    <p class="text-sm">{{ profile_user.profile.bio }}</p>
+                    {% endif %}
+                    
+                    <div class="divider"></div>
+                    <div class="flex flex-col gap-2 w-full">
+                        <a href="{% url 'profile' username=profile_user.username %}" class="btn btn-sm btn-ghost w-full">Profile</a>
+                        <a href="{% url 'user_bookmarks' username=profile_user.username %}" class="btn btn-sm btn-primary w-full">Bookmarks</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bookmarks Content -->
+        <div class="md:col-span-3">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-primary">{{ profile_user.username }}'s Bookmarks</h1>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="tabs tabs-boxed mb-6">
+                <a class="tab tab-active" id="tab-posts">Posts ({{ post_bookmarks|length }})</a>
+                <a class="tab" id="tab-manga">Manga ({{ manga_bookmarks|length }})</a>
+            </div>
+            
+            <!-- Post Bookmarks -->
+            <div id="posts-content" class="space-y-6">
+                {% if post_bookmarks %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for bookmark in post_bookmarks %}
+                    {% with post=bookmark.content_object %}
+                    <div class="card bg-neutral shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden h-full">
+                        {% if post.images.exists %}
+                        {% with thumbnail=post.get_thumbnail %}
+                        <a href="{% url 'post_detail' slug=post.slug %}" class="relative block">
+                            <img src="{% if thumbnail.thumbnail %}{{ thumbnail.thumbnail.url }}{% else %}{{ thumbnail.image.url }}{% endif %}" alt="{{ post.title }}" class="h-48 w-full object-cover hover:scale-105 transition-transform duration-300" />
+                            <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+                                <h3 class="text-white font-semibold text-lg">{{ post.title }}</h3>
+                            </div>
+                        </a>
+                        {% endwith %}
+                        {% else %}
+                        <a href="{% url 'post_detail' slug=post.slug %}" class="relative block">
+                            <div class="h-48 w-full bg-primary/20 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-lg">{{ post.title }}</h3>
+                            </div>
+                        </a>
+                        {% endif %}
+                        <div class="card-body p-4">
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                {% for category in post.categories.all %}
+                                <a href="{% url 'blog' %}?category={{ category.name }}" class="badge badge-outline badge-primary badge-sm">{{ category.name }}</a>
+                                {% endfor %}
+                            </div>
+                            <div class="flex items-center justify-between mt-auto">
+                                <div class="flex items-center gap-4 text-sm">
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                        {{ post.likes }}
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        {{ post.views }}
+                                    </span>
+                                </div>
+                                {% if user == profile_user %}
+                                <form action="{% url 'remove_bookmark' bookmark_id=bookmark.id %}" method="post" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ghost btn-xs">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card bg-neutral shadow-xl">
+                    <div class="card-body text-center py-12">
+                        <h2 class="card-title text-primary justify-center mb-4">No Bookmarked Posts</h2>
+                        <p class="opacity-70">{{ profile_user.username }} hasn't bookmarked any posts yet.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Manga Bookmarks -->
+            <div id="manga-content" class="space-y-6 hidden">
+                {% if manga_bookmarks %}
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {% for bookmark in manga_bookmarks %}
+                    {% with manga=bookmark.content_object %}
+                    <div class="card bg-neutral shadow-xl h-full overflow-hidden hover:shadow-2xl transition-all duration-300">
+                        <a href="{% url 'manga_detail' slug=manga.slug %}" class="h-full flex flex-col">
+                            <figure class="relative pt-[140%]">
+                                {% if manga.thumbnail %}
+                                <img src="{{ manga.thumbnail.url }}" alt="{{ manga.title }}" class="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                {% else %}
+                                <div class="absolute inset-0 w-full h-full bg-primary/20 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-primary/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                {% endif %}
+                                <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+                                    <h2 class="card-title text-white text-sm md:text-base line-clamp-2">{{ manga.title }}</h2>
+                                </div>
+                            </figure>
+                            <div class="card-body p-4 flex-grow">
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    {% for category in manga.manga_categories.all|slice:":2" %}
+                                    <span class="badge badge-outline badge-primary badge-sm">{{ category.name }}</span>
+                                    {% endfor %}
+                                    {% if manga.manga_categories.count > 2 %}
+                                    <span class="badge badge-outline badge-ghost badge-sm">+{{ manga.manga_categories.count|add:"-2" }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex flex-wrap gap-1 mb-3">
+                                    {% for author in manga.manga_authors.all|slice:":2" %}
+                                    <span class="badge badge-secondary badge-sm">{{ author.name }}</span>
+                                    {% endfor %}
+                                    {% if manga.manga_authors.count > 2 %}
+                                    <span class="badge badge-ghost badge-sm">+{{ manga.manga_authors.count|add:"-2" }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex items-center justify-between mt-auto">
+                                    <div class="flex items-center gap-4 text-sm">
+                                        <span class="flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                            {{ manga.likes }}
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            {{ manga.views }}
+                                        </span>
+                                    </div>
+                                    {% if user == profile_user %}
+                                    <form action="{% url 'remove_bookmark' bookmark_id=bookmark.id %}" method="post" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-ghost btn-xs">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="card bg-neutral shadow-xl">
+                    <div class="card-body text-center py-12">
+                        <h2 class="card-title text-primary justify-center mb-4">No Bookmarked Manga</h2>
+                        <p class="opacity-70">{{ profile_user.username }} hasn't bookmarked any manga yet.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabPosts = document.getElementById('tab-posts');
+        const tabManga = document.getElementById('tab-manga');
+        const postsContent = document.getElementById('posts-content');
+        const mangaContent = document.getElementById('manga-content');
+        
+        tabPosts.addEventListener('click', function() {
+            tabPosts.classList.add('tab-active');
+            tabManga.classList.remove('tab-active');
+            postsContent.classList.remove('hidden');
+            mangaContent.classList.add('hidden');
+        });
+        
+        tabManga.addEventListener('click', function() {
+            tabManga.classList.add('tab-active');
+            tabPosts.classList.remove('tab-active');
+            mangaContent.classList.remove('hidden');
+            postsContent.classList.add('hidden');
+        });
+    });
+</script>
+{% endblock %}

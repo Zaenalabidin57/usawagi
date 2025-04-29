@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Create{% endif %} Manga{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">
+            {% if form.instance.pk %}Edit{% else %}Create{% endif %} Manga
+        </h1>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Title -->
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Title
+                </label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.title.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Slug -->
+            <div>
+                <label for="{{ form.slug.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Slug
+                </label>
+                {{ form.slug }}
+                {% if form.slug.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.slug.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Categories -->
+            <div>
+                <label for="{{ form.categories.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Categories
+                </label>
+                {{ form.categories }}
+                {% if form.categories.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.categories.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- PDF File -->
+            <div>
+                <label for="{{ form.pdf_file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    PDF File
+                </label>
+                {{ form.pdf_file }}
+                {% if form.pdf_file.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.pdf_file.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.description.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Download Links -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4">Download Links</h2>
+                {{ download_links.management_form }}
+                <div class="space-y-4">
+                    {% for form in download_links %}
+                    <div class="border p-4 rounded-lg">
+                        {{ form.id }}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="{{ form.host_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Host Type
+                                </label>
+                                {{ form.host_type }}
+                            </div>
+                            <div>
+                                <label for="{{ form.url.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    URL
+                                </label>
+                                {{ form.url }}
+                            </div>
+                            <div>
+                                <label for="{{ form.order.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Order
+                                </label>
+                                {{ form.order }}
+                            </div>
+                            <div class="flex items-end">
+                                {{ form.DELETE }}
+                                <label for="{{ form.DELETE.id_for_label }}" class="ml-2 text-sm text-gray-700">
+                                    Delete
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex justify-end">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    {% if form.instance.pk %}Update{% else %}Create{% endif %} Manga
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Manga{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Delete Manga</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-lg mb-4">Are you sure you want to delete "{{ manga.title }}"?</p>
+            <p class="text-gray-600 mb-6">This action cannot be undone.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex space-x-4">
+                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                        Delete
+                    </button>
+                    <a href="{% url 'blog:manga-detail' manga.slug %}" 
+                       class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

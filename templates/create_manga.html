@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Manga - Usawagi{% endblock %}
+
+{% block content %}
+<div class="card bg-neutral shadow-xl max-w-3xl mx-auto">
+    <div class="card-body">
+        <h2 class="card-title text-2xl text-primary mb-6">Upload New Manga</h2>
+        
+        <form method="post" enctype="multipart/form-data" action="{% url 'create_manga' %}">
+            {% csrf_token %}
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Title</span>
+                </label>
+                <input type="text" name="title" placeholder="Enter manga title" class="input input-bordered" required />
+            </div>
+            
+            <!-- Hidden slug field - will be auto-generated from title -->
+            <input type="hidden" name="slug" />
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Authors</span>
+                    <span class="label-text-alt">People who created this manga (separate with spaces)</span>
+                </label>
+                <input type="text" name="manga_authors" placeholder="Enter authors" class="input input-bordered" />
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Tags</span>
+                    <span class="label-text-alt">Separate with spaces (e.g. "Shounen Isekai Adventure")</span>
+                </label>
+                <input type="text" name="manga_tags" placeholder="Enter tags" class="input input-bordered" />
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Description</span>
+                </label>
+                <textarea name="description" placeholder="Enter manga description" class="textarea textarea-bordered h-24"></textarea>
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">PDF File</span>
+                    <span class="label-text-alt">Upload your manga PDF file</span>
+                </label>
+                <input type="file" name="pdf_file" class="file-input file-input-bordered file-input-primary w-full" accept="application/pdf" required />
+            </div>
+            
+            <div class="form-control mb-4">
+                <label class="label">
+                    <span class="label-text">Thumbnail (Optional)</span>
+                    <span class="label-text-alt">If not provided, the first page of the PDF will be used</span>
+                </label>
+                <input type="file" name="thumbnail" class="file-input file-input-bordered file-input-primary w-full" accept="image/*" />
+                <div id="thumbnailPreview" class="mt-2 hidden">
+                    <img id="thumbnailImage" class="max-h-64 rounded-lg" alt="Thumbnail preview">
+                </div>
+            </div>
+            
+            <div class="form-control flex-row justify-end gap-2">
+                <a href="{% url 'manga_list' %}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Publish Manga</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Thumbnail preview
+    const thumbnailInput = document.querySelector('input[type="file"][name="thumbnail"]');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const thumbnailImage = document.getElementById('thumbnailImage');
+    
+    if (thumbnailInput) {
+        thumbnailInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    thumbnailImage.src = e.target.result;
+                    thumbnailPreview.classList.remove('hidden');
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                thumbnailPreview.classList.add('hidden');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

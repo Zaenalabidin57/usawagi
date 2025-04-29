@@ -7,3 +7,4 @@ media
 shortlink/__pycache__
 shortlink/migrations/__pycache__
 db.sqlite3
+staticfiles

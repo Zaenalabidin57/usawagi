@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manga List{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Manga Library</h1>
+    
+    <!-- Categories Filter -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Categories</h2>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'blog:manga-list' %}" class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                All
+            </a>
+            {% for category in categories %}
+            <a href="{% url 'blog:manga-list' %}?category={{ category.name }}" 
+               class="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                {{ category.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Manga Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for manga in manga_list %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <a href="{% url 'blog:manga-detail' manga.slug %}">
+                {% if manga.thumbnail %}
+                <img src="{{ manga.thumbnail.url }}" alt="{{ manga.title }}" class="w-full h-64 object-cover">
+                {% else %}
+                <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-500">No thumbnail</span>
+                </div>
+                {% endif %}
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold mb-2">{{ manga.title }}</h3>
+                    <p class="text-gray-600 text-sm mb-2">{{ manga.description|truncatechars:100 }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">{{ manga.views }} views</span>
+                        <span class="text-sm text-gray-500">{{ manga.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-8">
+            <p class="text-gray-500">No manga available yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                Previous
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 bg-gray-200 rounded">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                Next
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

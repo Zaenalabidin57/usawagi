@@ -3,31 +3,68 @@
 {% block title %}Edit Profil{% endblock %}
 
 {% block content %}
-<div class="card bg-neutral shadow-xl max-w-2xl mx-auto">
+<div class="card bg-neutral shadow-xl max-w-2xl mx-auto my-8">
     <div class="card-body">
         <h2 class="card-title text-2xl text-primary mb-6">Edit Profile</h2>
         
-        <form method="post" action="{% url 'edit_profile' %}">
+        <form method="post" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="form-control mb-4">
+            
+            <!-- Profile Picture -->
+            <div class="form-control mb-6">
                 <label class="label">
-                    <span class="label-text">First Name</span>
+                    <span class="label-text">Profile Picture</span>
                 </label>
-                <input type="text" name="first_name" placeholder="First Name" class="input input-bordered" value="{{ user.first_name }}" />
+                <div class="flex flex-col md:flex-row gap-4 items-start">
+                    <div class="avatar">
+                        <div class="w-24 h-24 rounded-full bg-primary flex items-center justify-center overflow-hidden">
+                            {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}" class="w-full h-full object-cover" id="profile-preview" />
+                            {% else %}
+                            <span class="text-3xl font-bold text-black" id="initial-preview">{{ user.username.0|upper }}</span>
+                            <img src="" alt="" class="w-full h-full object-cover hidden" id="profile-preview" />
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" name="profile_picture" class="file-input file-input-bordered w-full" accept="image/*" id="profile-picture-input" />
+                        <p class="text-xs mt-2 opacity-70">Recommended: Square image, at least 200x200 pixels</p>
+                    </div>
+                </div>
             </div>
             
-            <div class="form-control mb-4">
-                <label class="label">
-                    <span class="label-text">Last Name</span>
-                </label>
-                <input type="text" name="last_name" placeholder="Last Name" class="input input-bordered" value="{{ user.last_name }}" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">First Name</span>
+                    </label>
+                    <input type="text" name="first_name" placeholder="First Name" class="input input-bordered" value="{{ user.first_name }}" />
+                </div>
+                
+                <!-- Last Name -->
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Last Name</span>
+                    </label>
+                    <input type="text" name="last_name" placeholder="Last Name" class="input input-bordered" value="{{ user.last_name }}" />
+                </div>
             </div>
             
+            <!-- Email -->
             <div class="form-control mb-6">
                 <label class="label">
                     <span class="label-text">Email</span>
                 </label>
                 <input type="email" name="email" placeholder="Email" class="input input-bordered" value="{{ user.email }}" required />
+            </div>
+            
+            <!-- Bio -->
+            <div class="form-control mb-6">
+                <label class="label">
+                    <span class="label-text">Bio</span>
+                </label>
+                <textarea name="bio" placeholder="Tell us about yourself..." class="textarea textarea-bordered h-24">{{ profile.bio }}</textarea>
             </div>
             
             <div class="form-control flex-row justify-end gap-2">
@@ -37,4 +74,30 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileInput = document.getElementById('profile-picture-input');
+        const profilePreview = document.getElementById('profile-preview');
+        const initialPreview = document.getElementById('initial-preview');
+        
+        if (profileInput) {
+            profileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        profilePreview.src = e.target.result;
+                        profilePreview.classList.remove('hidden');
+                        if (initialPreview) {
+                            initialPreview.classList.add('hidden');
+                        }
+                    }
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

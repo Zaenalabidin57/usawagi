@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete {{ manga.title }} - Usawagi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="max-w-lg mx-auto">
+        <div class="card bg-neutral shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-primary mb-4">Delete Manga</h2>
+                <p class="mb-6">Are you sure you want to delete "{{ manga.title }}"? This action cannot be undone.</p>
+                
+                <div class="card-actions justify-end">
+                    <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">Cancel</a>
+                    <form method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-error">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

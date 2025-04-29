@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ manga.title }} - Usawagi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-2xl font-bold text-primary mb-6">Edit Manga</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="card bg-neutral shadow-xl">
+            {% csrf_token %}
+            <div class="card-body space-y-6">
+                <!-- Title -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Title</span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.title.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Slug -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Slug</span>
+                    </label>
+                    {{ form.slug }}
+                    {% if form.slug.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.slug.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Categories -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Categories</span>
+                    </label>
+                    {{ form.categories }}
+                    {% if form.categories.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.categories.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Authors -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Authors</span>
+                    </label>
+                    {{ form.authors }}
+                    {% if form.authors.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.authors.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Tags -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Tags</span>
+                    </label>
+                    {{ form.tags }}
+                    {% if form.tags.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.tags.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Description</span>
+                    </label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.description.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Current PDF -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Current PDF</span>
+                    </label>
+                    <div class="text-sm">
+                        <a href="{{ manga.pdf_file.url }}" class="link" target="_blank">{{ manga.pdf_file.name }}</a>
+                    </div>
+                </div>
+                
+                <!-- New PDF File -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Replace PDF File (optional)</span>
+                    </label>
+                    {{ form.pdf_file }}
+                    {% if form.pdf_file.errors %}
+                    <label class="label">
+                        <span class="label-text-alt text-error">{{ form.pdf_file.errors.0 }}</span>
+                    </label>
+                    {% endif %}
+                </div>
+                
+                <!-- Download Links -->
+                <div class="space-y-4">
+                    <h3 class="font-semibold">Download Links</h3>
+                    {{ formset.management_form }}
+                    <div id="download-links">
+                        {% for form in formset %}
+                        <div class="download-link-form grid grid-cols-2 gap-4 mb-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Host</span>
+                                </label>
+                                {{ form.host_type }}
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">URL</span>
+                                </label>
+                                {{ form.url }}
+                            </div>
+                            {% if form.non_field_errors %}
+                            <div class="col-span-2">
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ form.non_field_errors.0 }}</span>
+                                </label>
+                            </div>
+                            {% endif %}
+                            <div class="col-span-2">
+                                <label class="label cursor-pointer justify-start gap-2">
+                                    {{ form.DELETE }}
+                                    <span class="label-text">Delete this link</span>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="add-link" class="btn btn-outline btn-sm">Add Download Link</button>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="card-actions justify-end">
+                    <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addLinkBtn = document.getElementById('add-link');
+    const downloadLinksContainer = document.getElementById('download-links');
+    const totalFormsInput = document.querySelector('[name="links-TOTAL_FORMS"]');
+    
+    addLinkBtn.addEventListener('click', function() {
+        const forms = downloadLinksContainer.getElementsByClassName('download-link-form');
+        const formCount = forms.length;
+        const template = forms[0].cloneNode(true);
+        
+        // Update form index
+        template.innerHTML = template.innerHTML.replace(/links-0/g, `links-${formCount}`);
+        template.innerHTML = template.innerHTML.replace(/links_0/g, `links_${formCount}`);
+        
+        // Clear input values
+        template.querySelectorAll('input, select').forEach(input => {
+            if (input.type !== 'checkbox') {
+                input.value = '';
+            } else {
+                input.checked = false;
+            }
+        });
+        
+        downloadLinksContainer.appendChild(template);
+        totalFormsInput.value = formCount + 1;
+    });
+});
+</script>
+{% endblock %} 

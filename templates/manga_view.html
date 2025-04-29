@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reading {{ manga.title }} - Usawagi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manga-reader {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .manga-page {
+        width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4">
+    <div class="mb-4 flex justify-between items-center">
+        <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Kembali
+        </a>
+        
+        <a href="{{ manga.get_download_url }}" class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download PDF
+        </a>
+    </div>
+    
+    <div class="card bg-neutral shadow-xl mb-6">
+        <div class="card-body">
+            <h1 class="text-2xl font-bold text-primary mb-4 text-center">{{ manga.title }}</h1>
+            
+            {% if pages %}
+            <div class="text-center text-sm opacity-70 mb-4">
+                {{ pages|length }} pages • Scroll down to read
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Manga Reader - Vertical Scrolling -->
+    <div class="manga-reader mb-10">
+        {% for page_url in pages %}
+        <div class="manga-page-container mb-6" id="page-{{ forloop.counter }}">
+            <img src="{{ page_url }}" alt="Page {{ forloop.counter }}" class="manga-page">
+            <div class="text-center text-sm opacity-70 mt-1">Page {{ forloop.counter }} of {{ pages|length }}</div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10">
+            <p>No pages could be extracted from this manga.</p>
+            <a href="{{ manga.pdf_file.url }}" class="btn btn-primary mt-4" target="_blank">View Original PDF</a>
+        </div>
+        {% endfor %}
+    </div>
+        <a href="{% url 'manga_detail' slug=manga.slug %}" class="btn btn-ghost">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Kembali
+        </a>
+    
+    <!-- Back to top button -->
+    <button id="backToTopBtn" class="btn btn-circle btn-primary back-to-top hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Back to top button functionality
+        const backToTopBtn = document.getElementById('backToTopBtn');
+        
+        // Show button when scrolling down
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopBtn.classList.remove('hidden');
+            } else {
+                backToTopBtn.classList.add('hidden');
+            }
+        });
+        
+        // Scroll to top when button is clicked
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    });
+</script>
+{% endblock %}

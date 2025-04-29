@@ -56,7 +56,8 @@
                 <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-neutral rounded-box w-52">
                     <li><a href="{% url 'index' %}" class="text-primary">Home</a></li>
                     <li><a href="{% url 'blog' %}" class="text-primary">Blog</a></li>
-                    <li><a href="{% url 'random_post' %}" class="text-primary">Random</a></li>
+                    <li><a href="{% url 'manga_list' %}" class="text-secondary">Manga</a></li>
+                    <li><a href="{% url 'random_post' %}" class="text-primary">Random Content</a></li>
                     <li><a href="{% url 'contact' %}" class="text-primary">Komunitas</a></li>
                 </ul>
             </div>
@@ -69,7 +70,8 @@
             <ul class="menu menu-horizontal px-1">
                 <li><a href="{% url 'index' %}" class="text-primary">Home</a></li>
                 <li><a href="{% url 'blog' %}" class="text-primary">Blog</a></li>
-                <li><a href="{% url 'random_post' %}" class="text-primary">Random</a></li>
+                <li><a href="{% url 'manga_list' %}" class="text-secondary">Manga</a></li>
+                <li><a href="{% url 'random_post' %}" class="text-primary">Random Content</a></li>
                 <li><a href="{% url 'contact' %}" class="text-primary">Komunitas</a></li>
             </ul>
         </div>
@@ -99,11 +101,12 @@
                     </div>
                 </div>
                 <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-neutral rounded-box w-52">
-                    <li><a href="{% url 'profile' username=user.username %}" class="text-primary">Profile</a></li>
                     {% if user.is_staff or user.is_superuser or user.permission.can_create_posts %}
                     <li><a href="{% url 'create_post' %}" class="text-primary">Create Post</a></li>
+                    <li><a href="{% url 'create_manga' %}" class="text-primary">Create Manga</a></li>
                     <li><a href="{% url 'shortlink_dashboard' %}" class="text-primary">Short Links</a></li>
                     {% endif %}
+                    <li><a href="{% url 'profile' username=user.username %}" class="text-primary">Profile</a></li>
                     <li><a href="{% url 'logout' %}" class="text-primary">Logout</a></li>
                 </ul>
             </div>
