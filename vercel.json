@@ -24,7 +24,7 @@
     },
     {
       "src": "/media/(.*)",
-      "dest": "https://202.10.40.32:8080/media/$1"
+      "dest": "http://202.10.40.32:8080/media/$1"
     },
     {
       "src": "/(.*)",
@@ -32,6 +32,6 @@
     }
   ],
   "env": {
-    "DJANGO_SETTINGS_MODULE": "cuteblog.settings_prod"
+    "DJANGO_SETTINGS_MODULE": "cuteblog.vercel_settings"
   }
 }

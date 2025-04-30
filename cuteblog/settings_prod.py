@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -9,12 +11,24 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qj2na8&2@zzf&q@t$wwum)vqjdq6d8xh^)+6n+wh4uyo2kc_y_')
+try:
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qj2na8&2@zzf&q@t$wwum)vqjdq6d8xh^)+6n+wh4uyo2kc_y_')
+    if SECRET_KEY == 'django-insecure-qj2na8&2@zzf&q@t$wwum)vqjdq6d8xh^)+6n+wh4uyo2kc_y_':
+        logger.warning('Using insecure default SECRET_KEY. Set the SECRET_KEY environment variable in production.')
+except Exception as e:
+    logger.error(f"Failed to get SECRET_KEY: {e}")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+try:
+    DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+except Exception as e:
+    logger.error(f"Failed to get DEBUG: {e}")
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Add Vercel URL to allowed hosts
+try:
+    ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,usawagi.vercel.app').split(',')
+except Exception as e:
+    logger.error(f"Failed to get ALLOWED_HOSTS: {e}")
 
 # Application definition
 INSTALLED_APPS = [
