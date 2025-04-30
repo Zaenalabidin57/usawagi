@@ -77,8 +77,8 @@
         </div>
         <div class="navbar-end">
             <!-- Desktop search form -->
-            <form action="{% url 'blog' %}" method="get" class="hidden md:flex items-center bg-base-300 rounded-lg px-3 py-1">
-                <input type="text" name="search" placeholder="Search..." class="bg-transparent border-none focus:outline-none text-sm w-32 lg:w-64" value="{{ search }}" />
+            <form action="{% url 'search' %}" method="get" class="hidden md:flex items-center bg-base-300 rounded-lg px-3 py-1">
+                <input type="text" name="q" placeholder="Search..." class="bg-transparent border-none focus:outline-none text-sm w-32 lg:w-64" value="{{ query }}" />
                 <button type="submit" class="btn btn-ghost btn-circle btn-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -168,8 +168,14 @@
     <div id="mobile-search-popup" class="fixed inset-0 bg-black bg-opacity-80 z-50 hidden flex items-center justify-center">
         <div class="bg-neutral p-6 rounded-lg w-11/12 max-w-md">
             <h3 class="text-lg font-bold text-primary mb-4">Fitur Pencarian</h3>
-            <form action="{% url 'blog' %}" method="get" class="space-y-4">
-                <input type="text" name="search" placeholder="Dedek Lembut Imut bukan Tobrut 😭" class="input input-bordered w-full" value="{{ search }}" autofocus />
+            <form action="{% url 'search' %}" method="get" class="space-y-4">
+                <input type="text" name="q" placeholder="Dedek Lembut Imut bukan Tobrut 😭" class="input input-bordered w-full" value="{{ query }}" autofocus />
+                <div class="text-xs text-gray-400 mb-2">
+                    <p>Tips pencarian:</p>
+                    <p>- <code>tag:nama_tag</code> untuk mencari manga dengan tag tertentu</p>
+                    <p>- <code>author:nama_author</code> untuk mencari manga berdasarkan author</p>
+                    <p>- <code>type:manga</code> atau <code>type:post</code> untuk mencari berdasarkan tipe</p>
+                </div>
                 <div class="flex justify-between">
                     <button type="button" class="btn btn-ghost" onclick="toggleSearchPopup()">Gajadi 😅</button>
                     <button type="submit" class="btn btn-primary">

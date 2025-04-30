@@ -147,24 +147,7 @@
                                     <h2 class="card-title text-white text-sm md:text-base line-clamp-2">{{ manga.title }}</h2>
                                 </div>
                             </figure>
-                            <div class="card-body p-4 flex-grow">
-                                <div class="flex flex-wrap gap-1 mb-2">
-                                    {% for category in manga.manga_categories.all|slice:":2" %}
-                                    <span class="badge badge-outline badge-primary badge-sm">{{ category.name }}</span>
-                                    {% endfor %}
-                                    {% if manga.manga_categories.count > 2 %}
-                                    <span class="badge badge-outline badge-ghost badge-sm">+{{ manga.manga_categories.count|add:"-2" }}</span>
-                                    {% endif %}
-                                </div>
                                 
-                                <div class="flex flex-wrap gap-1 mb-3">
-                                    {% for author in manga.manga_authors.all|slice:":2" %}
-                                    <span class="badge badge-secondary badge-sm">{{ author.name }}</span>
-                                    {% endfor %}
-                                    {% if manga.manga_authors.count > 2 %}
-                                    <span class="badge badge-ghost badge-sm">+{{ manga.manga_authors.count|add:"-2" }}</span>
-                                    {% endif %}
-                                </div>
                                 
                                 <div class="flex items-center justify-between mt-auto">
                                     <div class="flex items-center gap-4 text-sm">

@@ -66,8 +66,6 @@ class Actress(models.Model):
     class Meta:
         verbose_name_plural = 'Actresses'
 
-class MangaCategory(models.Model):
-    name = models.CharField(max_length=50, unique=True)
     
     def __str__(self):
         return self.name
@@ -104,7 +102,6 @@ class HostType(models.Model):
 class Manga(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
-    manga_categories = models.ManyToManyField(MangaCategory, related_name='mangas')
     manga_tags = models.ManyToManyField(MangaTag, related_name='mangas')
     manga_authors = models.ManyToManyField(MangaAuthor, related_name='mangas')
     description = models.TextField(blank=True)

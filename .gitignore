@@ -8,3 +8,8 @@ shortlink/__pycache__
 shortlink/migrations/__pycache__
 db.sqlite3
 staticfiles
+tsumino
+frp
+FRP_DEPLOYMENT.md
+frpc.ini
+start_with_frp.sh

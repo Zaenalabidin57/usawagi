@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.text import slugify
 from django.db.models import Count, Q
 from .models import (Category, Actress, Post, PostImage, Comment, UserPermission, 
-                   UserProfile, MangaCategory, MangaTag, MangaAuthor, Manga, 
+                   UserProfile, MangaTag, MangaAuthor, Manga, 
                    DownloadLink, HostType, Contact, Bookmark, ContentType,
                    add_points_for_post, add_points_for_like, add_points_for_comment, 
                    add_points_for_bookmark)
@@ -20,12 +20,10 @@ from django.http import FileResponse
 def index(request):
     recent_posts = Post.objects.all().order_by('-created_at')[:8]
     recent_mangas = Manga.objects.all().order_by('-created_at')[:8]
-    categories = Category.objects.annotate(post_count=Count('posts')).order_by('-post_count')
     
     context = {
         'recent_posts': recent_posts,
         'recent_mangas': recent_mangas,
-        'categories': categories,
         'current_year': datetime.now().year
     }
     return render(request, 'index.html', context)
@@ -673,14 +671,11 @@ def manga_list(request):
     mangas = Manga.objects.all().order_by('-created_at')
     
     # Get filter parameters
-    category = request.GET.get('category')
     tag = request.GET.get('tag')
     author = request.GET.get('author')
     search = request.GET.get('search') or request.GET.get('q')  # Support both parameter names
     
     # Apply filters if provided
-    if category:
-        mangas = mangas.filter(manga_categories__name=category)
     
     if tag:
         mangas = mangas.filter(manga_tags__name=tag)
@@ -692,7 +687,6 @@ def manga_list(request):
         mangas = mangas.filter(
             Q(title__icontains=search) |
             Q(description__icontains=search) |
-            Q(manga_categories__name__icontains=search) |
             Q(manga_tags__name__icontains=search) |
             Q(manga_authors__name__icontains=search)
         ).distinct()
@@ -703,16 +697,13 @@ def manga_list(request):
     page_obj = paginator.get_page(page_number)
     
     # Get all categories and tags for sidebar
-    categories = MangaCategory.objects.annotate(manga_count=Count('mangas')).order_by('-manga_count')
     tags = MangaTag.objects.annotate(manga_count=Count('mangas')).order_by('-manga_count')[:20]  # Top 20 tags
     authors = MangaAuthor.objects.annotate(manga_count=Count('mangas')).order_by('-manga_count')
     
     context = {
         'page_obj': page_obj,
-        'categories': categories,
         'tags': tags,
         'authors': authors,
-        'category': category,
         'tag': tag,
         'author': author,
         'search': search,
@@ -738,14 +729,8 @@ def manga_detail(request, slug):
     manga.views += 1
     manga.save(update_fields=['views'])
     
-    # Get related manga based on categories
-    related_manga = Manga.objects.filter(
-        manga_categories__in=manga.manga_categories.all()
-    ).exclude(id=manga.id).distinct()[:4]
-    
     context = {
         'manga': manga,
-        'related_manga': related_manga,
         'manga_content_type_id': manga_content_type.id,
         'is_bookmarked': is_bookmarked,
     }
@@ -1148,15 +1133,6 @@ def member_create_manga(request):
                 author, created = MangaAuthor.objects.get_or_create(name=name)
                 manga.manga_authors.add(author)
         
-        # Process categories
-        categories = request.POST.getlist('manga_categories')
-        for category_id in categories:
-            try:
-                category = MangaCategory.objects.get(id=category_id)
-                manga.manga_categories.add(category)
-            except MangaCategory.DoesNotExist:
-                pass
-        
         # Create shortlink for downloads
         shortlink = ShortLink.objects.create(
             original_url=f"/manga/download/{slug}/",
@@ -1168,14 +1144,114 @@ def member_create_manga(request):
         messages.success(request, "Manga created successfully!")
         return redirect('manga_detail', slug=slug)
     
-    categories = MangaCategory.objects.all()
     tags = MangaTag.objects.all()
     authors = MangaAuthor.objects.all()
     
     context = {
-        'categories': categories,
         'tags': tags,
         'authors': authors,
         'is_member_manga': True
     }
     return render(request, 'member_create_manga.html', context)
+
+# Advanced search function
+def search(request):
+    query = request.GET.get('q', '')
+    
+    # Initialize empty querysets
+    posts = Post.objects.none()
+    mangas = Manga.objects.none()
+    
+    # Parse special filters from the query
+    tag_filter = None
+    author_filter = None
+    category_filter = None
+    actress_filter = None
+    content_type = None
+    
+    # Extract special filters using regex
+    import re
+    
+    # Check for tag:something syntax
+    tag_match = re.search(r'tag:([^\s]+)', query)
+    if tag_match:
+        tag_filter = tag_match.group(1)
+        query = query.replace(f'tag:{tag_filter}', '').strip()
+    
+    # Check for author:someone syntax
+    author_match = re.search(r'author:([^\s]+)', query)
+    if author_match:
+        author_filter = author_match.group(1)
+        query = query.replace(f'author:{author_filter}', '').strip()
+    
+    # Check for category:something syntax
+    category_match = re.search(r'category:([^\s]+)', query)
+    if category_match:
+        category_filter = category_match.group(1)
+        query = query.replace(f'category:{category_filter}', '').strip()
+    
+    # Check for actress:someone syntax
+    actress_match = re.search(r'actress:([^\s]+)', query)
+    if actress_match:
+        actress_filter = actress_match.group(1)
+        query = query.replace(f'actress:{actress_filter}', '').strip()
+    
+    # Check for type:post or type:manga syntax
+    type_match = re.search(r'type:([^\s]+)', query)
+    if type_match:
+        content_type = type_match.group(1).lower()
+        query = query.replace(f'type:{content_type}', '').strip()
+    
+    # If no specific content type is requested or if posts are requested
+    if not content_type or content_type == 'post':
+        # Search in posts
+        post_query = Q()
+        if query:
+            post_query |= Q(title__icontains=query) | Q(content__icontains=query)
+        
+        if category_filter:
+            post_query &= Q(categories__name__icontains=category_filter)
+        
+        if actress_filter:
+            post_query &= Q(actresses__name__icontains=actress_filter)
+        
+        posts = Post.objects.filter(post_query).distinct()
+    
+    # If no specific content type is requested or if manga is requested
+    if not content_type or content_type == 'manga':
+        # Search in manga
+        manga_query = Q()
+        if query:
+            manga_query |= Q(title__icontains=query) | Q(description__icontains=query)
+        
+        if tag_filter:
+            manga_query &= Q(manga_tags__name__icontains=tag_filter)
+        
+        if author_filter:
+            manga_query &= Q(manga_authors__name__icontains=author_filter)
+        
+        mangas = Manga.objects.filter(manga_query).distinct()
+    
+    # Paginate results
+    post_paginator = Paginator(posts, 12)
+    manga_paginator = Paginator(mangas, 12)
+    
+    page_number = request.GET.get('page', 1)
+    post_page = post_paginator.get_page(page_number)
+    manga_page = manga_paginator.get_page(page_number)
+    
+    context = {
+        'query': request.GET.get('q', ''),
+        'posts': post_page,
+        'mangas': manga_page,
+        'post_count': posts.count(),
+        'manga_count': mangas.count(),
+        'total_count': posts.count() + mangas.count(),
+        'tag_filter': tag_filter,
+        'author_filter': author_filter,
+        'category_filter': category_filter,
+        'actress_filter': actress_filter,
+        'content_type': content_type,
+    }
+    
+    return render(request, 'search_results.html', context)

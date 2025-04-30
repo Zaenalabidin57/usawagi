@@ -25,16 +25,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='MangaCategory',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True)),
-            ],
-            options={
-                'verbose_name_plural': 'Manga Categories',
-            },
-        ),
-        migrations.CreateModel(
             name='MangaTag',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -86,11 +76,6 @@ class Migration(migrations.Migration):
             model_name='manga',
             name='manga_authors',
             field=models.ManyToManyField(related_name='mangas', to='blog.mangaauthor'),
-        ),
-        migrations.AddField(
-            model_name='manga',
-            name='manga_categories',
-            field=models.ManyToManyField(related_name='mangas', to='blog.mangacategory'),
         ),
         migrations.AddField(
             model_name='manga',

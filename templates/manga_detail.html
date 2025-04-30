@@ -6,11 +6,12 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content -->
-        <div class="lg:col-span-2">
+        <!-- Thumbnail Card - Left Side -->
+        <div class="lg:col-span-1">
             <div class="card bg-neutral shadow-xl mb-8">
                 <!-- Thumbnail -->
-                <figure class="relative pt-[56.25%]">
+                <figure class="relative pt-[125%]">
+                        <a href="{% url 'manga_view' slug=manga.slug %}" class="btn btn-primary">
                     {% if manga.thumbnail %}
                     <img src="{{ manga.thumbnail.url }}" alt="{{ manga.title }}" class="absolute inset-0 w-full h-full object-cover">
                     {% else %}
@@ -20,8 +21,33 @@
                         </svg>
                     </div>
                     {% endif %}
+                </a>
                 </figure>
                 
+                <!-- Action Buttons -->
+                <div class="card-body p-4">
+                    <div class="flex flex-col gap-4">
+                        <a href="{% url 'manga_view' slug=manga.slug %}" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Read Online
+                        </a>
+                        <a href="{{ manga.get_download_url }}" class="btn btn-secondary">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content - Right Side (2/3 width) -->
+        <div class="lg:col-span-2">
+            <div class="card bg-neutral shadow-xl mb-8">
                 <div class="card-body">
                     <!-- Title and Actions -->
                     <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
@@ -63,84 +89,53 @@
                         </div>
                     </div>
                     
-                    <!-- Metadata -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <h3 class="text-sm font-semibold mb-2">Categories</h3>
-                            <div class="flex flex-wrap gap-2">
-                                {% for category in manga.manga_categories.all %}
-                                <a href="{% url 'manga_list' %}?category={{ category.name }}" class="badge badge-outline badge-primary hover:badge-outline hover:badge-accent transition-all duration-200">{{ category.name }}</a>
-                                {% empty %}
-                                <span class="text-sm opacity-70">No categories</span>
-                                {% endfor %}
-                            </div>
+                    <div>
+                        <h3 class="text-sm font-semibold mb-2">Authors</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for author in manga.manga_authors.all %}
+                            <a href="{% url 'manga_list' %}?author={{ author.name }}" class="badge badge-outline badge-secondary hover:badge-outline hover:badge-accent transition-all duration-200">{{ author.name }}</a>
+                            {% empty %}
+                            <span class="text-sm opacity-70">No authors</span>
+                            {% endfor %}
                         </div>
-                        
-                        <div>
-                            <h3 class="text-sm font-semibold mb-2">Authors</h3>
-                            <div class="flex flex-wrap gap-2">
-                                {% for author in manga.manga_authors.all %}
-                                <a href="{% url 'manga_list' %}?author={{ author.name }}" class="badge badge-outline badge-secondary hover:badge-outline hover:badge-accent transition-all duration-200">{{ author.name }}</a>
-                                {% empty %}
-                                <span class="text-sm opacity-70">No authors</span>
-                                {% endfor %}
-                            </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-sm font-semibold mb-2">Tags</h3>
+                        <div class="flex flex-wrap gap-2">
+                            {% for tag in manga.manga_tags.all %}
+                            <a href="{% url 'manga_list' %}?tag={{ tag.name }}" class="badge badge-outline badge-accent hover:badge-outline hover:badge-secondary transition-all duration-200">{{ tag.name }}</a>
+                            {% empty %}
+                            <span class="text-sm opacity-70">No tags</span>
+                            {% endfor %}
                         </div>
-                        
-                        <div>
-                            <h3 class="text-sm font-semibold mb-2">Tags</h3>
-                            <div class="flex flex-wrap gap-2">
-                                {% for tag in manga.manga_tags.all %}
-                                <a href="{% url 'manga_list' %}?tag={{ tag.name }}" class="badge badge-outline badge-accent hover:badge-outline hover:badge-secondary transition-all duration-200">{{ tag.name }}</a>
-                                {% empty %}
-                                <span class="text-sm opacity-70">No tags</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-sm font-semibold mb-2">Uploaded by</h3>
-                            <div class="flex items-center gap-2">
-                                <div class="avatar">
-                                    <div class="w-8 rounded-full bg-primary text-black flex items-center justify-center">
-                                        <span class="text-sm font-bold">{{ manga.user.username.0|upper }}</span>
-                                    </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="text-sm font-semibold mb-2">Uploaded by</h3>
+                        <div class="flex items-center gap-2">
+                            <div class="avatar">
+                                <div class="w-8 rounded-full bg-primary text-black flex items-center justify-center">
+                                    <span class="text-sm font-bold">{{ manga.user.username.0|upper }}</span>
                                 </div>
-                                <a href="{% url 'profile' username=manga.user.username %}" class="link link-hover">{{ manga.user.username }}</a>
                             </div>
+                            <a href="{% url 'profile' username=manga.user.username %}" class="link link-hover">{{ manga.user.username }}</a>
                         </div>
                     </div>
                     
                     <!-- Description -->
                     {% if manga.description %}
-                    <div class="mb-6">
+                    <div class="mt-4">
                         <h3 class="text-sm font-semibold mb-2">Description</h3>
                         <div class="prose prose-sm max-w-none">
                             <p>{{ manga.description|linebreaks }}</p>
                         </div>
                     </div>
                     {% endif %}
-                    
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap gap-4 justify-center mt-4">
-                        <a href="{% url 'manga_view' slug=manga.slug %}" class="btn btn-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            Read Online
-                        </a>
-                        <a href="{{ manga.get_download_url }}" class="btn btn-secondary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            Download PDF
-                        </a>
-                    </div>
                 </div>
             </div>
             
-            <!-- Stats Card -->
+            <!-- Stats Card - Now below the main content -->
             <div class="card bg-neutral shadow-xl mb-8">
                 <div class="card-body">
                     <h2 class="card-title text-primary">Stats</h2>
@@ -167,13 +162,13 @@
             </div>
         </div>
         
-        <!-- Sidebar -->
-        <div>
+        <!-- Sidebar - Now moved to the right -->
+        <div class="lg:col-span-3">
             <!-- Related Manga -->
-            <div class="card bg-neutral shadow-xl mb-6 sticky top-4">
+            <div class="card bg-neutral shadow-xl mb-6">
                 <div class="card-body">
                     <h2 class="card-title text-primary">Related Manga</h2>
-                    <div class="space-y-4 mt-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                         {% for related in related_mangas %}
                         <a href="{% url 'manga_detail' slug=related.slug %}" class="flex items-center gap-3 hover:bg-base-100 p-2 rounded-lg transition-all">
                             {% if related.thumbnail %}
@@ -205,7 +200,7 @@
                             </div>
                         </a>
                         {% empty %}
-                        <div class="text-center py-4">
+                        <div class="text-center py-4 col-span-full">
                             <p class="text-sm opacity-70">No related manga found.</p>
                         </div>
                         {% endfor %}

@@ -20,6 +20,9 @@ urlpatterns = [
     path('profile/<str:username>/', views.profile, name='profile'),
     path('api/categories/', views.get_categories, name='get_categories'),
     
+    # Search
+    path('search/', views.search, name='search'),
+    
     # Random post
     path('random/', views.random_post, name='random_post'),
     

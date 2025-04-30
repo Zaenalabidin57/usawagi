@@ -201,9 +201,9 @@
         <div class="card bg-neutral shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
             <a href="{% url 'manga_detail' slug=manga.slug %}" class="relative block">
                 {% if manga.thumbnail %}
-                <img src="{{ manga.thumbnail.url }}" alt="{{ manga.title }}" class="h-64 w-full object-cover hover:scale-105 transition-transform duration-300" />
+                <img src="{{ manga.thumbnail.url }}" alt="{{ manga.title }}" class="h-48 w-full object-cover hover:scale-105 transition-transform duration-300" />
                 {% else %}
-                <div class="h-64 w-full bg-secondary/20 flex items-center justify-center">
+                <div class="h-48 w-full bg-secondary/20 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-secondary/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
@@ -215,12 +215,9 @@
             </a>
             <div class="card-body p-4">
                 <div class="flex flex-wrap gap-1 mb-3">
-                    {% for category in manga.manga_categories.all|slice:":2" %}
-                    <a href="{% url 'manga_list' %}?category={{ category.name }}" class="badge badge-outline badge-secondary badge-sm hover:badge-accent transition-all duration-200">{{ category.name }}</a>
+                    {% for tag in manga.manga_tags.all|slice:":3" %}
+                    <a href="{% url 'manga_list' %}?tag={{ tag.name }}" class="badge badge-outline badge-secondary badge-sm hover:badge-secondary transition-all duration-200">{{ tag.name }}</a>
                     {% endfor %}
-                    {% if manga.manga_categories.count > 2 %}
-                    <span class="badge badge-outline badge-ghost badge-sm">+{{ manga.manga_categories.count|add:"-2" }}</span>
-                    {% endif %}
                 </div>
                 <div class="flex items-center justify-between mt-auto">
                     <div class="flex items-center gap-4 text-sm">

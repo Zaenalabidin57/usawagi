@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Comment, Contact, Category, PostImage, UserPermission, HostType, DownloadLink, Actress, Manga, MangaCategory, MangaTag, MangaAuthor
+from .models import Post, Comment, Contact, Category, PostImage, UserPermission, HostType, DownloadLink, Actress, Manga, MangaTag, MangaAuthor
 
 # Register your models here.
 class PostImageInline(admin.TabularInline):
@@ -29,15 +29,11 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Manga)
 class MangaAdmin(admin.ModelAdmin):
-    list_display = ('title', 'get_categories', 'get_authors', 'user', 'created_at', 'likes', 'views')
-    list_filter = ('created_at', 'manga_categories', 'manga_authors')
+    list_display = ('title', 'get_authors', 'user', 'created_at', 'likes', 'views')
+    list_filter = ('created_at', 'manga_authors')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
-    filter_horizontal = ('manga_categories', 'manga_tags', 'manga_authors')
-    
-    def get_categories(self, obj):
-        return ", ".join([c.name for c in obj.manga_categories.all()])
-    get_categories.short_description = 'Categories'
+    filter_horizontal = ('manga_tags', 'manga_authors')
     
     def get_authors(self, obj):
         return ", ".join([a.name for a in obj.manga_authors.all()])
@@ -52,10 +48,6 @@ class CategoryAdmin(admin.ModelAdmin):
         return obj.posts.count()
     post_count.short_description = 'Posts'
 
-@admin.register(MangaCategory)
-class MangaCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'manga_count')
-    search_fields = ('name',)
     
     def manga_count(self, obj):
         return obj.mangas.count()
