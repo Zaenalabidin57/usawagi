@@ -89,8 +89,31 @@ STATICFILES_DIRS = [
 ]
 
 # Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = os.environ.get('MEDIA_URL', 'https://your-media-server.com/media/')
+
+# For local development, you can still use local media files
+# But in production, media files will be served from the external server
+if DEBUG:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+else:
+    # In production, we don't need a media root as files will be on the external server
+    # This is just a placeholder directory for the file upload handling
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media_temp')
+
+# Storage configuration
+DEFAULT_FILE_STORAGE = 'blog.storage.SelectiveStorage'
+
+# AWS S3 or compatible storage settings (for production)
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', '')
+AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL', '') # For DigitalOcean Spaces or other S3-compatible services
+AWS_S3_CUSTOM_DOMAIN = os.environ.get('AWS_S3_CUSTOM_DOMAIN', '') # Your CDN domain if using one
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_DEFAULT_ACL = 'public-read'
+AWS_LOCATION = 'media'
 
 # Whitenoise configuration
 WHITENOISE_USE_FINDERS = True
