@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Install Python dependencies
-pip install -r requirements.txt
+echo "Installing dependencies..."
+python3 -m pip install -r requirements-vercel.txt
 
-# Collect static files
-python manage.py collectstatic --noinput
+echo "Collecting static files..."
+python3 manage.py collectstatic --noinput
 
-# Make migrations (optional, uncomment if needed)
-# python manage.py makemigrations
+echo "Creating staticfiles directory if it doesn't exist..."
+mkdir -p staticfiles
 
-# Apply migrations (optional, uncomment if needed)
-# python manage.py migrate
+echo "Copying static files to staticfiles directory..."
+cp -r static/* staticfiles/ 2>/dev/null || :
 
 echo "Build completed successfully!"
